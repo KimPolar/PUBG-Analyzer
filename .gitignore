@@ -9,8 +9,15 @@ htmlcov/
 venv/
 dist/
 build/
+node_modules/
+target/
+.tools/
+.vite/
 .env
 analysis.json
 data/raw/
 data/processed/
-
+src-tauri/binaries/pubg-trainer-*
+src-tauri/gen/schemas/
+trainer/*.spec
+trainer/.venv/

@@ -1,117 +1,142 @@
-# PUBG Position Analyzer
+# PUBG Analyzer
 
-PUBG 원본 텔레메트리에서 **다음 원 좌표 자체가 아니라, 각 위치를 선점했을 때의 역사적 가치**를 분석하기 위한 프로젝트입니다.
+PUBG 공식 API와 텔레메트리로 **“다음 원이 어디인가”가 아니라 “지금 어느 위치를 선점하는 것이 유리한가”**를 분석하는 Windows 데스크톱 앱입니다.
 
-현재 버전은 모델 학습 전 단계인 신뢰 가능한 feature extraction MVP입니다. 한 경기 또는 여러 경기에서 다음 정보를 추출할 수 있는 기반을 제공합니다.
+앱의 수집·파싱·통계·저장·GUI 백엔드는 Rust로 동작합니다. 모델 재학습만 격리된 Python sidecar가 담당하며, 배포 시 PyInstaller 실행 파일로 묶이므로 사용자가 Python을 설치할 필요는 없습니다.
 
-- `LogPhaseChange`와 `LogGameStatePeriodic` 기반 자기장 단계
-- 플레이어 좌표를 합친 팀 중심·팀 분산·차량 탑승 상태
-- 현재 원 기준 거리와 정규화 좌표
-- 다음 원 포함 여부와 진입 필요 거리
-- 100m·300m·500m 주변 적 팀 밀도
-- 30초·60초·120초 생존 label
-- 팀별 실제 이동 구간
-- 피해·다운·킬·사망의 공간 집계
-- 관측 `z` 하위 분위수를 사용한 고도 proxy
-- 페이즈별 100m 셀의 기술 통계와 보수적으로 축소한 역사적 위치 점수
+## 현재 구현 범위
 
-## 설치
+- 닉네임과 플랫폼을 이용한 PUBG 계정 조회
+- 계정의 최근 매치 목록 자동 수집
+- 매치 asset에서 공식 telemetry URL 추출 및 병렬 다운로드
+- RPM 제한기와 PUBG 응답의 rate-limit 상태 추적
+- 이미 분석한 매치 건너뛰기, 실패 매치 재시도, 작업 취소
+- SQLite WAL 기반 로컬 영속화
+- OS 자격 증명 저장소를 이용한 API 키 보관
+- gzip/일반 JSON 텔레메트리 자동 판별
+- 페이즈별 자기장, 팀 위치·분산·차량, 적 팀 밀도, 생존 label 추출
+- 피해·다운·킬·사망의 공간 집계와 상대고도 proxy
+- 여러 경기의 페이즈·공간 셀 통합 및 보수적으로 축소한 Position Value
+- 맵/페이즈별 SVG 히트맵과 셀 상세 지표
+- Python sidecar 기반 다음 원 잔류·60초/120초 생존 모델 학습
+- 매치 단위 holdout과 Brier Score·Log Loss·ROC AUC 기록
 
-Python 3.11 이상이 필요합니다.
+## 구조
 
-```bash
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install -e ".[dev]"
+```mermaid
+flowchart TD
+    UI["Tauri + React GUI"] --> CMD["Tauri commands"]
+    CMD --> API["Rust PUBG collector"]
+    CMD --> DB["SQLite cache"]
+    API --> TEL["Rust telemetry engine"]
+    TEL --> DB
+    DB --> MAP["Position Value heatmap"]
+    DB --> SIDE["Bundled Python trainer"]
+    SIDE --> MODEL["Versioned model artifacts"]
 ```
 
-Windows PowerShell에서는 가상환경 활성화 명령이 다음과 같습니다.
+| 계층 | 기술 | 책임 |
+|---|---|---|
+| GUI | Tauri 2, React, TypeScript | 설정, 진행률, 히트맵, 학습 UI |
+| 앱 백엔드 | Rust | command 경계, 자격 증명, sidecar 관리 |
+| 분석 코어 | Rust | API, telemetry 파싱, feature/점수 집계 |
+| 저장소 | SQLite | 설정, 매치 상태, 원본 경로, 분석 결과 |
+| 학습기 | Python, scikit-learn | 오프라인 학습과 평가만 담당 |
+
+Python 분석기/API 서버는 제거했습니다. `trainer/`의 Python은 선택적 학습 작업만 수행하며 앱 프로세스와 격리됩니다.
+
+## 개발 실행
+
+필수 도구:
+
+- Rust stable
+- Node.js 24 이상
+- Python 3.11 이상 — sidecar를 빌드하거나 학습기 테스트를 실행할 때만 필요
+- 플랫폼별 [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/)
+
+```bash
+npm install
+npm run tauri:dev
+```
+
+브라우저에서 GUI 레이아웃만 확인하려면 다음 명령을 사용합니다. 브라우저 모드에서는 실제 API를 호출하지 않고 미리보기용 데이터가 표시됩니다.
+
+```bash
+npm run dev
+```
+
+## Windows EXE 빌드
 
 ```powershell
-.venv\Scripts\Activate.ps1
+python -m pip install -r trainer/requirements.txt
+npm install
+npm run tauri:build -- --bundles nsis
 ```
 
-## CLI 실행
-
-로컬 JSON과 gzip 압축 텔레메트리를 자동 판별합니다. PUBG CDN URL도 직접 입력할 수 있습니다.
-
-```bash
-pubg-analyzer analyze \
-  "https://telemetry-cdn.pubg.com/bluehole-pubg/steam/2026/09/17/01/57/2773ed27-b23b-11f1-9ce7-960e258f6262-telemetry.json" \
-  --output analysis.json
-```
-
-팀 단위 row와 이동 구간까지 확인하려면 다음 옵션을 사용합니다.
-
-```bash
-pubg-analyzer analyze telemetry.json \
-  --include-snapshots \
-  --include-movement-segments \
-  --output analysis.json
-```
-
-기본 공간 셀은 `100m × 100m`, 시간 bucket은 10초입니다.
-
-```bash
-pubg-analyzer analyze telemetry.json \
-  --cell-size-m 100 \
-  --bucket-seconds 10 \
-  --output analysis.json
-```
-
-## API 실행
-
-```bash
-pubg-analyzer serve --host 0.0.0.0 --port 8000
-```
-
-개발 서버가 뜨면 `http://localhost:8000/docs`에서 요청을 시험할 수 있습니다.
-
-```bash
-curl -X POST http://localhost:8000/v1/analyze/url \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://telemetry-cdn.pubg.com/bluehole-pubg/steam/2026/09/17/01/57/2773ed27-b23b-11f1-9ce7-960e258f6262-telemetry.json",
-    "cell_size_m": 100,
-    "bucket_seconds": 10
-  }'
-```
-
-API의 URL 분석은 SSRF 방지를 위해 `telemetry-cdn.pubg.com`만 허용합니다. 로컬 파일은 CLI에서 분석합니다.
-
-## 결과 구조
+빌드 과정은 현재 Rust target triple에 맞는 `pubg-trainer-<target>.exe`를 먼저 생성하고 Tauri external binary로 포함합니다. 최종 설치 파일은 보통 다음 위치에 생성됩니다.
 
 ```text
-match                 경기와 자기장 설정 메타데이터
-summary               이벤트·팀·스냅샷·셀 개수
-event_counts          이벤트 종류별 개수
-phase_timeline        페이즈 전환 시각
-circles               페이즈별 목표 자기장
-position_cells        페이즈·공간 셀별 분석 결과
-movement_summary      팀 이동 요약
-team_snapshots        --include-snapshots 사용 시 포함
-movement_segments     --include-movement-segments 사용 시 포함
+target/release/bundle/nsis/
 ```
 
-PUBG 텔레메트리의 `safetyZonePosition`은 블루존이 닫히는 동안 계속 움직입니다. 이 프로젝트는 페이즈별 목표 원을 구할 때 고정되어 있는 `poisonGasWarningPosition`과 `poisonGasWarningRadius`를 사용하고, 최초 원만 초기 `safetyZonePosition`을 사용합니다.
+## 앱 사용 순서
 
-## 점수 해석
+1. [PUBG Developer Portal](https://developer.pubg.com/)에서 API 키를 발급합니다.
+2. 설정 화면에서 플레이어 이름, 플랫폼, API 키와 RPM을 저장합니다.
+3. `최신 매치 동기화`를 누릅니다.
+4. 앱이 새 매치의 메타데이터와 telemetry를 수집하고 Rust로 분석합니다.
+5. 맵과 페이즈를 선택해 Position Value 히트맵을 확인합니다.
+6. 충분한 경기가 쌓이면 모델 학습 화면에서 확률 모델을 재학습합니다.
 
-`historical_value_score`는 현재 입력된 관측 데이터 안에서 다음 항목을 합친 기술 통계입니다.
+API 키는 SQLite나 로그에 쓰지 않고 Windows Credential Manager/macOS Keychain/Linux Secret Service에 저장합니다. Telemetry URL도 `https://telemetry-cdn.pubg.com`만 허용합니다.
 
-- 120초 생존
-- 다음 원 잔류
-- 자리 유지 시간
+## Position Value 해석
+
+`historicalValueScore`는 다음 관측값을 결합한 기술 통계입니다.
+
+- 120초 생존율
+- 다음 원 잔류율
+- 평균 자리 유지 시간
 - 다음 원 진입 부담
-- 피해 교환
+- 피해 교환 결과
 - 주변 적 팀 경쟁도
 
-표본이 적은 셀은 50점으로 축소하고 `score_confidence`를 함께 제공합니다. 이 점수는 아직 인과효과나 실시간 추천값이 아닙니다. 여러 경기 적재, 팀 전력·도착 시각·생존 인원 등의 선택 편향 보정, walk-forward 검증을 추가한 뒤 Position Value 모델의 학습 target/feature로 사용해야 합니다.
+표본이 적은 셀은 중립값인 50점 쪽으로 축소하며 `scoreConfidence`를 함께 표시합니다. 이 값은 아직 인과효과가 아니므로 “그 좌표가 팀을 강하게 만들었다”가 아니라 “비슷한 상황에서 그 좌표의 관측 결과가 좋았다”로 해석해야 합니다.
 
-## 테스트
+학습 입력은 실제 미래 원 좌표와 미래 이동거리를 제외합니다. 미래 값은 label 생성에만 사용하고, 검증도 행을 무작위로 섞지 않고 매치 ID 단위로 분리합니다.
 
-```bash
-ruff check .
-pytest
+## 데이터 위치
+
+Tauri의 OS별 app data 디렉터리에 다음 파일이 생성됩니다.
+
+```text
+pubg-analyzer.sqlite3       설정·매치·분석 결과
+telemetry/*.json.gz         원본 보관을 켠 경우의 telemetry
+training/training-rows.jsonl
+models/*.joblib
+models/manifest.json
 ```
 
+## 검증
+
+```bash
+cargo fmt --all -- --check
+cargo test -p pubg-analyzer-core
+npm run build
+PYTHONPATH=trainer python -m unittest discover -s trainer -p "test_*.py"
+```
+
+로컬 telemetry 파일을 Rust 분석기로 직접 점검할 수도 있습니다.
+
+```bash
+cargo run -p pubg-analyzer-core --example analyze_file -- telemetry.json.gz
+```
+
+`tests/fixtures/minimal_telemetry.json`은 Python 구현에서 사용하던 기준 fixture를 그대로 유지해 Rust 포팅의 회귀 테스트에 사용합니다.
+
+## 제한 사항
+
+- PUBG API가 계정 관계에 제공하는 최근 매치 범위 안에서만 자동 수집합니다.
+- 맵의 정적 지형 mesh를 사용하지 않습니다. 위치 이동·체류·교전 결과와 관측 `z`를 지형 효과의 proxy로 사용합니다.
+- 현재 점수는 historical baseline입니다. 팀 전력·도착 시각의 선택 편향 보정과 walk-forward calibration은 후속 모델 단계에서 강화해야 합니다.
+- Windows 설치 파일이 기본 배포 대상입니다. macOS/Linux는 소스 빌드가 가능하지만 별도의 서명·패키징 설정이 필요합니다.
