@@ -1,0 +1,162 @@
+[
+  {
+    "_T": "LogMatchStart",
+    "_D": "2026-01-01T00:00:00.000Z",
+    "mapName": "Baltic_Main",
+    "teamSize": 2,
+    "weatherId": "Clear",
+    "isCustomGame": false,
+    "isEventMode": false,
+    "blueZoneCustomOptions": []
+  },
+  {
+    "_T": "LogGameStatePeriodic",
+    "_D": "2026-01-01T00:00:00.000Z",
+    "gameState": {
+      "elapsedTime": 0,
+      "safetyZonePosition": {"x": 100000, "y": 100000, "z": 0},
+      "safetyZoneRadius": 100000,
+      "poisonGasWarningPosition": {"x": 0, "y": 0, "z": 0},
+      "poisonGasWarningRadius": 0
+    }
+  },
+  {
+    "_T": "LogPhaseChange",
+    "_D": "2026-01-01T00:00:05.000Z",
+    "phase": 1
+  },
+  {
+    "_T": "LogGameStatePeriodic",
+    "_D": "2026-01-01T00:00:06.000Z",
+    "gameState": {
+      "elapsedTime": 6,
+      "safetyZonePosition": {"x": 100000, "y": 100000, "z": 0},
+      "safetyZoneRadius": 100000,
+      "poisonGasWarningPosition": {"x": 100000, "y": 100000, "z": 0},
+      "poisonGasWarningRadius": 50000
+    }
+  },
+  {
+    "_T": "LogPhaseChange",
+    "_D": "2026-01-01T00:00:25.000Z",
+    "phase": 1
+  },
+  {
+    "_T": "LogPlayerPosition",
+    "_D": "2026-01-01T00:00:10.000Z",
+    "elapsedTime": 10,
+    "character": {"accountId": "a1", "name": "A1", "teamId": 1, "location": {"x": 100000, "y": 100000, "z": 1000}, "isInVehicle": false},
+    "vehicle": null
+  },
+  {
+    "_T": "LogPlayerPosition",
+    "_D": "2026-01-01T00:00:10.100Z",
+    "elapsedTime": 10.1,
+    "character": {"accountId": "a2", "name": "A2", "teamId": 1, "location": {"x": 100400, "y": 100000, "z": 1020}, "isInVehicle": false},
+    "vehicle": null
+  },
+  {
+    "_T": "LogPlayerPosition",
+    "_D": "2026-01-01T00:00:10.200Z",
+    "elapsedTime": 10.2,
+    "character": {"accountId": "b1", "name": "B1", "teamId": 2, "location": {"x": 145000, "y": 100000, "z": 900}, "isInVehicle": true},
+    "vehicle": {"vehicleType": "WheeledVehicle"}
+  },
+  {
+    "_T": "LogPlayerTakeDamage",
+    "_D": "2026-01-01T00:00:15.000Z",
+    "damage": 25,
+    "attacker": {"accountId": "a1", "teamId": 1, "location": {"x": 100000, "y": 100000, "z": 1000}},
+    "victim": {"accountId": "b1", "teamId": 2, "location": {"x": 145000, "y": 100000, "z": 900}}
+  },
+  {
+    "_T": "LogPlayerPosition",
+    "_D": "2026-01-01T00:00:20.000Z",
+    "elapsedTime": 20,
+    "character": {"accountId": "a1", "name": "A1", "teamId": 1, "location": {"x": 101000, "y": 100000, "z": 1010}, "isInVehicle": false},
+    "vehicle": null
+  },
+  {
+    "_T": "LogPlayerPosition",
+    "_D": "2026-01-01T00:00:20.100Z",
+    "elapsedTime": 20.1,
+    "character": {"accountId": "a2", "name": "A2", "teamId": 1, "location": {"x": 101300, "y": 100000, "z": 1020}, "isInVehicle": false},
+    "vehicle": null
+  },
+  {
+    "_T": "LogPlayerPosition",
+    "_D": "2026-01-01T00:00:20.200Z",
+    "elapsedTime": 20.2,
+    "character": {"accountId": "b1", "name": "B1", "teamId": 2, "location": {"x": 140000, "y": 100000, "z": 920}, "isInVehicle": true},
+    "vehicle": {"vehicleType": "WheeledVehicle"}
+  },
+  {
+    "_T": "LogPlayerPosition",
+    "_D": "2026-01-01T00:00:30.000Z",
+    "elapsedTime": 30,
+    "character": {"accountId": "a1", "name": "A1", "teamId": 1, "location": {"x": 102000, "y": 100000, "z": 1010}, "isInVehicle": false},
+    "vehicle": null
+  },
+  {
+    "_T": "LogPlayerPosition",
+    "_D": "2026-01-01T00:00:30.200Z",
+    "elapsedTime": 30.2,
+    "character": {"accountId": "b1", "name": "B1", "teamId": 2, "location": {"x": 135000, "y": 100000, "z": 950}, "isInVehicle": false},
+    "vehicle": null
+  },
+  {
+    "_T": "LogPlayerMakeGroggy",
+    "_D": "2026-01-01T00:00:35.000Z",
+    "attacker": {"accountId": "a1", "teamId": 1, "location": {"x": 102000, "y": 100000, "z": 1010}},
+    "victim": {"accountId": "b1", "teamId": 2, "location": {"x": 135000, "y": 100000, "z": 950}}
+  },
+  {
+    "_T": "LogPhaseChange",
+    "_D": "2026-01-01T00:00:45.000Z",
+    "phase": 2
+  },
+  {
+    "_T": "LogGameStatePeriodic",
+    "_D": "2026-01-01T00:00:46.000Z",
+    "gameState": {
+      "elapsedTime": 46,
+      "safetyZonePosition": {"x": 100000, "y": 100000, "z": 0},
+      "safetyZoneRadius": 50000,
+      "poisonGasWarningPosition": {"x": 110000, "y": 100000, "z": 0},
+      "poisonGasWarningRadius": 20000
+    }
+  },
+  {
+    "_T": "LogPlayerPosition",
+    "_D": "2026-01-01T00:00:50.000Z",
+    "elapsedTime": 50,
+    "character": {"accountId": "a1", "name": "A1", "teamId": 1, "location": {"x": 108000, "y": 100000, "z": 1100}, "isInVehicle": false},
+    "vehicle": null
+  },
+  {
+    "_T": "LogPlayerPosition",
+    "_D": "2026-01-01T00:00:50.100Z",
+    "elapsedTime": 50.1,
+    "character": {"accountId": "a2", "name": "A2", "teamId": 1, "location": {"x": 108300, "y": 100000, "z": 1110}, "isInVehicle": false},
+    "vehicle": null
+  },
+  {
+    "_T": "LogPlayerKillV2",
+    "_D": "2026-01-01T00:00:55.000Z",
+    "killer": {"accountId": "a1", "teamId": 1, "location": {"x": 108000, "y": 100000, "z": 1100}},
+    "finisher": null,
+    "victim": {"accountId": "b1", "teamId": 2, "location": {"x": 132000, "y": 100000, "z": 950}}
+  },
+  {
+    "_T": "LogPlayerPosition",
+    "_D": "2026-01-01T00:01:10.000Z",
+    "elapsedTime": 70,
+    "character": {"accountId": "a1", "name": "A1", "teamId": 1, "location": {"x": 110000, "y": 100000, "z": 1120}, "isInVehicle": false},
+    "vehicle": null
+  },
+  {
+    "_T": "LogMatchEnd",
+    "_D": "2026-01-01T00:01:40.000Z"
+  }
+]
+
