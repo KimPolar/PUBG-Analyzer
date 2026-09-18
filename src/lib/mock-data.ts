@@ -20,14 +20,16 @@ function buildCells(): DatasetCell[] {
       const distance = Math.hypot(x - 7.5, y - 4.5);
       if (distance > 6.6 || (x + y * 3) % 7 === 0) continue;
       const score = Math.max(28, Math.min(94, 91 - distance * 7 + ((x * 11 + y * 5) % 17)));
+      const cellX = x + 33;
+      const cellY = y + 36;
       cells.push({
-        phaseCellId: `p3:${x}:${y}`,
-        cellId: `${x}:${y}`,
+        phaseCellId: `p3:${cellX}:${cellY}`,
+        cellId: `${cellX}:${cellY}`,
         phase: 3,
-        cellX: x,
-        cellY: y,
-        centerXM: x * 100 + 50,
-        centerYM: y * 100 + 50,
+        cellX,
+        cellY,
+        centerXM: cellX * 100 + 50,
+        centerYM: cellY * 100 + 50,
         matchCount: 18 + ((x + y) % 12),
         occupancySamples: 34 + ((x * 5 + y * 7) % 90),
         visits: 9 + ((x + y * 2) % 24),

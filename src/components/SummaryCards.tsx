@@ -1,3 +1,4 @@
+import { formatPubgMapName } from "../lib/pubg-maps";
 import type { DashboardData } from "../types/domain";
 
 interface SummaryCardsProps {
@@ -23,7 +24,7 @@ export function SummaryCards({ dashboard }: SummaryCardsProps) {
     {
       label: "맵 커버리지",
       value: `${mapCount}`,
-      detail: dashboard.maps.slice(0, 2).map((map) => cleanMapName(map.mapName)).join(" · ") || "대기 중",
+      detail: dashboard.maps.slice(0, 2).map((map) => formatPubgMapName(map.mapName)).join(" · ") || "대기 중",
       tone: "blue",
     },
     {
@@ -52,8 +53,4 @@ function compactNumber(value: number): string {
     notation: "compact",
     maximumFractionDigits: 1,
   }).format(value);
-}
-
-function cleanMapName(value: string): string {
-  return value.replace(/_Main$/u, "");
 }

@@ -1,3 +1,4 @@
+import { formatPubgMapName } from "../lib/pubg-maps";
 import type { StoredMatchSummary } from "../types/domain";
 
 interface MatchTableProps {
@@ -37,7 +38,7 @@ export function MatchTable({ matches, expanded = false }: MatchTableProps) {
               {visible.map((match) => (
                 <tr key={match.matchId} title={match.error ?? undefined}>
                   <td>{formatDate(match.createdAt)}</td>
-                  <td>{cleanMapName(match.mapName)}</td>
+                  <td>{match.mapName ? formatPubgMapName(match.mapName) : "Unknown"}</td>
                   <td>{match.gameMode ?? "—"}</td>
                   <td><Status status={match.status} /></td>
                   <td><code>{shortId(match.matchId)}</code></td>
@@ -66,10 +67,6 @@ function formatDate(value: string | null): string {
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
-}
-
-function cleanMapName(value: string | null): string {
-  return value?.replace(/_Main$/u, "") ?? "Unknown";
 }
 
 function shortId(value: string): string {
